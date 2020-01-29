@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <script>
+    let canvas, canvasContext;
+    let ballX = 50;
+    let ballY = 100;
+    let ballSpeedX = 10;
+    let ballSpeedY = 5;
+    let ballRadius = 10;
+
+    let player1Score = 0;
+    let player2Score = 0;
+
+    let paddle1Y = 250;
+    let paddle2Y = 250;
+    const paddleHeight = 100;
+    const paddleWidth = 10;
+
+    window.onload = () => {
+      console.log("Hello World");
+      canvas = document.getElementById("gameCanvas");
+      canvasContext = canvas.getContext("2d");
+
+      const framePerSecond = 30;
+      setInterval(() => {
+        drawAll();
+        moveAll();
+      }, 1000 / framePerSecond);
+
+      canvas.addEventListener("mousemove", e => {
+        let mousePos = calculateMousePosition(e);
+        paddle1Y = mousePos.y - paddleHeight / 2;
+      });
+    };
+
+    const calculateMousePosition = e => {
+      let rect = canvas.getBoundingClientRect();
+      let root = document.documentElement;
+      let mouseX = e.clientX - rect.left - root.scrollLeft;
+      let mouseY = e.clientY - rect.top - root.scrollTop;
+      return {
+        x: mouseX,
+        y: mouseY
+      };
+    };
+
+    const resetBall = () => {
+      ballSpeedX = -ballSpeedX;
+      ballX = canvas.width / 2;
+      ballY = canvas.height / 2;
+    };
+
+    const drawAll = () => {
+      colorRect(0, 0, canvas.width, canvas.height, "black");
+      DrawLine();
+      colorRect(0, paddle1Y, paddleWidth, paddleHeight, "white");
+      colorRect(
+        canvas.width - paddleWidth,
+        paddle2Y,
+        paddleWidth,
+        paddleHeight,
+        "white"
+      );
+      colorCircle(ballX, ballY, ballRadius, "white");
+      canvasContext.fillText("Player1: ", 10, 10);
+      canvasContext.fillText(player1Score, 55, 10);
+      canvasContext.fillText("Player2: ", canvas.width - 55, 10);
+      canvasContext.fillText(player2Score, canvas.width - 10, 10);
+    };
+
+    const DrawLine = () => {
+      for (let i = 0; i < canvas.height; i += 40) {
+        colorRect(canvas.width / 2, i + 10, 2, 20, "white");
+      }
+    };
+
+    const moveAI = () => {
+      if (paddle2Y + paddleHeight / 2 < ballY + 35) {
+        paddle2Y += 10;
+      } else if (paddle2Y + paddleHeight / 2 > ballY + 35) {
+        paddle2Y -= 10;
+      }
+    };
+
+    const moveAll = () => {
+      moveAI();
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
+      if (ballX < 0) {
+        if (ballY > paddle1Y && ballY < paddle1Y + paddleHeight) {
+          ballSpeedX = -ballSpeedX;
+          let deltaY = ballY - (paddle1Y + paddleHeight / 2);
+          ballSpeedY = deltaY * 0.35;
+        } else {
+          resetBall();
+          player2Score++;
+        }
+      }
+      if (ballX > canvas.width) {
+        if (ballY > paddle2Y && ballY < paddle2Y + paddleHeight) {
+          ballSpeedX = -ballSpeedX;
+          let deltaY = ballY - (paddle2Y + paddleHeight / 2);
+          ballSpeedY = deltaY * 0.35;
+        } else {
+          resetBall();
+          player1Score++;
+        }
+      }
+
+      if (ballY < 0) ballSpeedY = -ballSpeedY;
+      if (ballY > canvas.height) ballSpeedY = -ballSpeedY;
+    };
+
+    const colorCircle = (centerX, centerY, radius, color) => {
+      canvasContext.fillStyle = color;
+      canvasContext.beginPath();
+      canvasContext.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+      canvasContext.fill();
+    };
+
+    const colorRect = (leftX, topY, width, height, color) => {
+      canvasContext.fillStyle = color;
+      canvasContext.fillRect(leftX, topY, width, height);
+    };
+  </script>
+</html>
